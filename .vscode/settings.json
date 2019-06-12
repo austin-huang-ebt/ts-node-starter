@@ -6,4 +6,30 @@
         "**/coverge": true
     },
     "typescript.referencesCodeLens.enabled": true,
+    "git.autofetch": true,
+    "eslint.autoFixOnSave": true,
+    "editor.formatOnSave": false,
+    "editor.tabSize": 2,
+    "editor.wordWrap": "on",
+    "editor.fontFamily": "Inconsolata, Consolas, 'Courier New', monospace",
+    "editor.rulers": [
+        80,
+        100
+    ],
+    "gitlens.advanced.messages": {
+        "suppressCommitHasNoPreviousCommitWarning": false,
+        "suppressCommitNotFoundWarning": false,
+        "suppressFileNotUnderSourceControlWarning": false,
+        "suppressGitVersionWarning": false,
+        "suppressLineUncommittedWarning": false,
+        "suppressNoRepositoryWarning": false,
+        "suppressResultsExplorerNotice": false,
+        "suppressShowKeyBindingsNotice": true
+    },
+    "gitlens.views.fileHistory.enabled": true,
+    "gitlens.views.lineHistory.enabled": true,
+    "printcode.fontSize": 11,
+    "npm.enableScriptExplorer": true,
+    "prettier.tslintIntegration": false,
+    "prettier.eslintIntegration": true
 }
