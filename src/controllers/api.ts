@@ -12,7 +12,7 @@ export let getApi = (req: Request, res: Response) => {
     status: '200',
     data: [
       {
-        route: '/getApi',
+        route: '/api',
         method: 'GET'
       },
     ],

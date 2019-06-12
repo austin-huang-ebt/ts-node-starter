@@ -36,6 +36,6 @@ app.use(
 /**
  * Primary app routes.
  */
-app.get("/getApi", apiController.getApi);
+app.get("/api", apiController.getApi);
 
 export default app;

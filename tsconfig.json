@@ -3,7 +3,9 @@
         "module": "commonjs",
         "esModuleInterop": true,
         "target": "es2017",
-        "lib": ["es2017"],
+        // "dom" is there because:
+        // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/12044
+        "lib": ["es2017", "dom"],
         "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "dist",
