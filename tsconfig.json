@@ -4,11 +4,15 @@
         "esModuleInterop": true,
         "target": "es2017",
         "lib": ["es2017"],
-        "noImplicitAny": true,
-        "strictNullChecks": true,
         "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "dist",
+        "noFallthroughCasesInSwitch": true,
+        "downlevelIteration":  true,
+        "strict": true,
+        "noImplicitReturns": true,
+        "preserveSymlinks": true,
+        "resolveJsonModule": true,
         "baseUrl": ".",
         "paths": {
             "*": [
