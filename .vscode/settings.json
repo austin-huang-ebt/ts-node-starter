@@ -31,5 +31,6 @@
     "printcode.fontSize": 11,
     "npm.enableScriptExplorer": true,
     "prettier.tslintIntegration": false,
-    "prettier.eslintIntegration": true
+    "prettier.eslintIntegration": true,
+    "jest.pathToJest": "npm run test --"
 }
