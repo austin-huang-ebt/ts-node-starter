@@ -2,18 +2,16 @@
     "compilerOptions": {
         "module": "commonjs",
         "esModuleInterop": true,
-        "target": "es2017",
-        // "dom" is there because:
-        // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/12044
-        "lib": ["es2017", "dom"],
+        "allowSyntheticDefaultImports": true,
+        "target": "es6",
         "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "dist",
+        "noImplicitAny": true,
         "noFallthroughCasesInSwitch": true,
         "downlevelIteration":  true,
         "strict": true,
         "noImplicitReturns": true,
-        "preserveSymlinks": true,
         "resolveJsonModule": true,
         "baseUrl": ".",
         "paths": {

@@ -7,8 +7,7 @@
     },
     "typescript.referencesCodeLens.enabled": true,
     "git.autofetch": true,
-    "eslint.autoFixOnSave": true,
-    "editor.formatOnSave": false,
+    "editor.formatOnSave": true,
     "editor.tabSize": 2,
     "editor.wordWrap": "on",
     "editor.fontFamily": "Inconsolata, Consolas, 'Courier New', monospace",
@@ -32,5 +31,9 @@
     "npm.enableScriptExplorer": true,
     "prettier.tslintIntegration": false,
     "prettier.eslintIntegration": true,
-    "jest.pathToJest": "npm run test --"
+    "jest.pathToJest": "npm run test --",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    },
+    "eslint.codeActionsOnSave.mode": "problems"
 }
