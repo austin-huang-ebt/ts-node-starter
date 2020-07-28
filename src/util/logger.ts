@@ -7,6 +7,10 @@ const logger = winston.createLogger({
     }),
     new winston.transports.File({ filename: 'debug.log', level: 'debug' }),
   ],
+  format: winston.format.combine(
+    winston.format.colorize(),
+    winston.format.json(),
+  ),
 });
 
 if (process.env.NODE_ENV != 'production') {
