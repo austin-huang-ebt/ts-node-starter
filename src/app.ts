@@ -42,8 +42,6 @@ app.use(
 
 const router = express.Router();
 
-router.options('*', cors());
-
 /**
  * Primary app routes.
  */

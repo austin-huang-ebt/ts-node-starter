@@ -1,4 +1,3 @@
-import request from 'request';
 import { Response, Request, NextFunction } from 'express';
 
 /**
