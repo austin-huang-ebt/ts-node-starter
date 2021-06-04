@@ -1,29 +1,29 @@
 import express from 'express';
 import compression from 'compression'; // compresses requests
-import session from 'express-session';
 import bodyParser from 'body-parser';
 import lusca from 'lusca';
 import cors from 'cors';
 import path from 'path';
 import winston from 'winston';
 import expressWinston from 'express-winston';
-import { SESSION_SECRET } from './util/secrets';
 
 // Controllers (route handlers)
 import * as apiController from './controllers/api';
+
+import logger from './util/logger';
+import dotenv from 'dotenv';
+import fs from 'fs';
+
+if (fs.existsSync('.env')) {
+  logger.debug('Using .env file to supply config environment variables');
+  dotenv.config({ path: '.env' });
+}
 
 // Create Express server
 const app = express();
 
 // Express configuration
 app.set('port', process.env.PORT || 3000);
-app.use(
-  session({
-    resave: true,
-    saveUninitialized: true,
-    secret: SESSION_SECRET,
-  }),
-);
 app.use(lusca.xframe('SAMEORIGIN'));
 app.use(lusca.xssProtection(true));
 
