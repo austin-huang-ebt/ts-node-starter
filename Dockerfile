@@ -1,3 +1,21 @@
+FROM node:12-alpine AS builder
+
+RUN mkdir /home/node/app/
+
+WORKDIR /home/node/app
+
+ARG NODE_ENV=development
+ENV NODE_ENV=${NODE_ENV}
+
+COPY package.json ./
+COPY yarn.lock ./
+
+RUN yarn
+
+COPY . .
+
+RUN yarn run build-ts
+
 # https://github.com/nodejs/docker-node/blob/master/docs/BestPractices.md#cmd
 
 FROM node:12-alpine 
@@ -8,8 +26,7 @@ RUN mkdir /home/node/app/ && chown -R node:node /home/node/app
 
 WORKDIR /home/node/app
 
-# ARG NODE_ENV=production
-ARG NODE_ENV=development
+ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
 COPY --chown=node:node package.json ./
@@ -19,9 +36,8 @@ USER node
 RUN yarn
 RUN yarn cache clean
 
-COPY --chown=node:node . .
-
-RUN yarn run build-ts
+COPY --chown=node:node --from=builder /home/node/app/dist/ ./dist/
+COPY --chown=node:node ./.env ./.env 
 
 EXPOSE 3000
 
