@@ -8,20 +8,20 @@ RUN mkdir /home/node/app/ && chown -R node:node /home/node/app
 
 WORKDIR /home/node/app
 
-ARG NODE_ENV=production
+# ARG NODE_ENV=production
+ARG NODE_ENV=development
 ENV NODE_ENV=${NODE_ENV}
-
-USER node
 
 COPY --chown=node:node package.json ./
 COPY --chown=node:node yarn.lock ./
 
-RUN npm install -g -s --no-progress yarn@1.22.4 && \
-  yarn && \
-  yarn run build-ts && \
-  yarn cache clean
+USER node
+RUN yarn
+RUN yarn cache clean
 
 COPY --chown=node:node . .
+
+RUN yarn run build-ts
 
 EXPOSE 3000
 
