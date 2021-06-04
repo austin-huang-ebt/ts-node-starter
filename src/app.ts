@@ -46,6 +46,7 @@ const router = express.Router();
  * Primary app routes.
  */
 router.get('/api', apiController.getApi);
+router.get('/metrics', apiController.getMetrics);
 
 app.use(
   expressWinston.logger({
