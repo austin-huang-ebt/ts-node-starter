@@ -1,4 +1,4 @@
-import { Response, Request, NextFunction } from 'express';
+import { Response, Request } from 'express';
 import register from '../util/prom';
 
 /**
@@ -16,9 +16,12 @@ export const getApi = (req: Request, res: Response): void => {
  * Prometheus endpoint
  * @route GET /metrics
  */
-export const getMetrics = async (req: Request, res: Response): Promise<void> => {
-    // Return all metrics the Prometheus exposition format
-    res.setHeader('Content-Type', register.contentType);
-    const m = await register.metrics();
-    res.end(m);
+export const getMetrics = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  // Return all metrics the Prometheus exposition format
+  res.setHeader('Content-Type', register.contentType);
+  const m = await register.metrics();
+  res.end(m);
 };

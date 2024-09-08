@@ -28,7 +28,7 @@ function onShutdown() {
 }
 
 async function healthCheck() {
-  const errors: any[] = [];
+  const errors: unknown[] = [];
   return Promise.all(
     [
       // all your health checks goes here
@@ -59,9 +59,9 @@ function beforeShutdown() {
 const options = {
   // health check options
   healthChecks: {
-    '/healthcheck': healthCheck,    // a function accepting a state and returning a promise indicating service health,
-    verbatim: true,                 // [optional = false] use object returned from /healthcheck verbatim in response,
-    __unsafeExposeStackTraces: true // [optional = false] return stack traces in error response if healthchecks throw errors
+    '/healthcheck': healthCheck, // a function accepting a state and returning a promise indicating service health,
+    verbatim: true, // [optional = false] use object returned from /healthcheck verbatim in response,
+    __unsafeExposeStackTraces: true, // [optional = false] return stack traces in error response if healthchecks throw errors
   },
   // caseInsensitive,               // [optional] whether given health checks routes are case insensitive (defaults to false)
 
@@ -73,15 +73,17 @@ const options = {
   // signal,                        // [optional = 'SIGTERM'] what signal to listen for relative to shutdown
   // signals,                       // [optional = []] array of signals to listen for relative to shutdown
   // sendFailuresDuringShutdown,    // [optional = true] whether or not to send failure (503) during shutdown
-  beforeShutdown,                   // [optional] called before the HTTP server starts its shutdown
-  onSignal,                         // [optional] cleanup function, returning a promise (used to be onSigterm)
-  onShutdown,                       // [optional] called right before exiting
+  beforeShutdown, // [optional] called before the HTTP server starts its shutdown
+  onSignal, // [optional] cleanup function, returning a promise (used to be onSigterm)
+  onShutdown, // [optional] called right before exiting
   // onSendFailureDuringShutdown,   // [optional] called before sending each 503 during shutdowns
 
   // both
-  logger: (msg: string, err: Error): void => { // [optional] logger function to be called with errors. Example logger call: ('error happened during shutdown', error). See terminus.js for more details.
+  logger: (msg: string, err: Error): void => {
+    // [optional] logger function to be called with errors. Example logger call: ('error happened during shutdown', error). See terminus.js for more details.
     logger.error(msg, err);
-  }                            };
+  },
+};
 
 createTerminus(server, options);
 
