@@ -1,39 +1,40 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "search.exclude": {
-        "**/node_modules": true,
-        "**/dist": true,
-        "**/coverge": true
-    },
-    "typescript.referencesCodeLens.enabled": true,
-    "git.autofetch": true,
-    "editor.formatOnSave": true,
-    "editor.tabSize": 2,
-    "editor.wordWrap": "on",
-    "editor.fontFamily": "Inconsolata, Consolas, 'Courier New', monospace",
-    "editor.rulers": [
-        80,
-        100
-    ],
-    "gitlens.advanced.messages": {
-        "suppressCommitHasNoPreviousCommitWarning": false,
-        "suppressCommitNotFoundWarning": false,
-        "suppressFileNotUnderSourceControlWarning": false,
-        "suppressGitVersionWarning": false,
-        "suppressLineUncommittedWarning": false,
-        "suppressNoRepositoryWarning": false,
-        "suppressResultsExplorerNotice": false,
-        "suppressShowKeyBindingsNotice": true
-    },
-    "gitlens.views.fileHistory.enabled": true,
-    "gitlens.views.lineHistory.enabled": true,
-    "printcode.fontSize": 11,
-    "npm.enableScriptExplorer": true,
-    "prettier.tslintIntegration": false,
-    "prettier.eslintIntegration": true,
-    "jest.pathToJest": "npm run test --",
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true
-    },
-    "eslint.codeActionsOnSave.mode": "problems"
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/coverge": true
+  },
+  "typescript.referencesCodeLens.enabled": true,
+  "git.autofetch": true,
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.wordWrap": "on",
+  "editor.fontFamily": "Inconsolata, Consolas, 'Courier New', monospace",
+  "editor.rulers": [
+    80,
+    100
+  ],
+  "gitlens.advanced.messages": {
+    "suppressCommitHasNoPreviousCommitWarning": false,
+    "suppressCommitNotFoundWarning": false,
+    "suppressFileNotUnderSourceControlWarning": false,
+    "suppressGitVersionWarning": false,
+    "suppressLineUncommittedWarning": false,
+    "suppressNoRepositoryWarning": false,
+    "suppressResultsExplorerNotice": false,
+    "suppressShowKeyBindingsNotice": true
+  },
+  "gitlens.views.fileHistory.enabled": true,
+  "gitlens.views.lineHistory.enabled": true,
+  "printcode.fontSize": 11,
+  "npm.enableScriptExplorer": true,
+  "prettier.tslintIntegration": false,
+  "prettier.eslintIntegration": true,
+  "jest.pathToJest": "npm run test --",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.codeActionsOnSave.mode": "problems",
+  "npm.packageManager": "yarn"
 }
