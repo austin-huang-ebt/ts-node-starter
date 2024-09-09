@@ -20,6 +20,12 @@ type FNOLParams = {
   };
 };
 
+interface CreatePaymentParams {
+  url: string;
+  token: string;
+  // Add other necessary parameters here
+}
+
 const SERVER_URL =
   'https://us-vault-punetst-gw.insuremo.com/aw/1.0/general-claim';
 
@@ -209,6 +215,194 @@ export async function createFNOL(params: FNOLParams) {
     return (await saveClaimResponse.json()).Model.ClaimEntity;
   } catch (error) {
     console.error('Error during FNOL process:', error);
+    throw error;
+  }
+}
+
+export async function createPayment(params: CreatePaymentParams) {
+  const headers = {
+    Authorization: `Bearer ${params.token}`,
+    'Content-Type': 'application/json',
+  };
+
+  try {
+    // 1. Search Claim
+    const searchClaimBody = JSON.stringify({
+      Conditions: {},
+      PageNo: 1,
+      PageSize: 10,
+      FuzzyConditions: { ExtClaimNo: '000' },
+      Module: 'ClaimCase',
+      SortField: 'LastReviewDate',
+      SortType: 'DESC',
+      SearchType: 0,
+    });
+
+    const searchClaimResponse = await fetch(
+      `${params.url}/public/ap00/query/entity`,
+      {
+        method: 'POST',
+        headers,
+        body: searchClaimBody,
+      },
+    );
+    const searchClaimData = await searchClaimResponse.json();
+
+    if (searchClaimData.Status !== 'OK') throw new Error('Search Claim failed');
+    const caseId = searchClaimData.Results[0].SolrDocs[0].CaseId;
+
+    // 2. Query Claim Tasks by caseId
+    const queryClaimTasksResponse = await fetch(
+      `${params.url}/workflow/claimTasks/${caseId}/false`,
+      {
+        method: 'GET',
+        headers,
+      },
+    );
+    const queryClaimTasksData = await queryClaimTasksResponse.json();
+
+    if (queryClaimTasksData.Status !== 'OK')
+      throw new Error('Query Claim Tasks failed');
+    const taskId = queryClaimTasksData.Model.loadClaimTasks[0].id;
+
+    // 3. Retrieve Claim by Task Id
+    const retrieveClaimResponse = await fetch(
+      `${params.url}/claimhandling/caseForm/${taskId}/0`,
+      {
+        method: 'GET',
+        headers,
+      },
+    );
+    const retrieveClaimData = await retrieveClaimResponse.json();
+
+    if (retrieveClaimData.Status !== 'OK')
+      throw new Error('Retrieve Claim by Task Id failed');
+
+    // 4. Add policy to the claim (assumed to be part of request)
+    const addPolicyToClaimBody = JSON.stringify(retrieveClaimData.Model); // Using response from previous step
+    const addPolicyResponse = await fetch(
+      `${params.url}/claimhandling/retrievePolicy/`,
+      {
+        method: 'POST',
+        headers,
+        body: addPolicyToClaimBody,
+      },
+    );
+    const addPolicyData = await addPolicyResponse.json();
+
+    if (addPolicyData.Status !== 'OK')
+      throw new Error('Add policy to the claim failed');
+
+    // 5-10: The following steps are querying static data (Get Cause of Loss, Get Subclaim Type, etc.)
+    const staticDataUrls = [
+      `${params.url}/public/codetable/data/list/5`,
+      `${params.url}/public/codetable/data/list/6`,
+      `${params.url}/public/codetable/data/list/7`,
+      `${params.url}/public/codetable/data/list/8`,
+      `${params.url}/public/codetable/data/list/9`,
+    ];
+
+    for (const url of staticDataUrls) {
+      const staticDataResponse = await fetch(url, {
+        method: 'GET',
+        headers,
+      });
+      const staticData = await staticDataResponse.json();
+      if (staticData.Status !== 'OK')
+        throw new Error(`Error querying static data: ${url}`);
+    }
+
+    // 11. Claim Registration Submit
+    const claimRegistrationBody = JSON.stringify(addPolicyData.Model); // Assuming some modifications from previous steps
+    const claimRegistrationResponse = await fetch(
+      `${params.url}/claimhandling/submitClaimRegistration`,
+      {
+        method: 'POST',
+        headers,
+        body: claimRegistrationBody,
+      },
+    );
+    const claimRegistrationData = await claimRegistrationResponse.json();
+
+    if (claimRegistrationData.Status !== 'OK')
+      throw new Error('Claim Registration Submit failed');
+
+    // 12-14: Query Claim Tasks and Work on Claim Settlement Task
+    const queryClaimSettlementTasksResponse = await fetch(
+      `${params.url}/workflow/claimTasks/${caseId}/false`,
+      {
+        method: 'GET',
+        headers,
+      },
+    );
+    const queryClaimSettlementTasksData =
+      await queryClaimSettlementTasksResponse.json();
+
+    if (queryClaimSettlementTasksData.Status !== 'OK')
+      throw new Error('Query Claim Settlement Tasks failed');
+    const claimSettlementTaskId =
+      queryClaimSettlementTasksData.Model.loadClaimTasks[0].id;
+
+    const retrieveSettlementClaimResponse = await fetch(
+      `${params.url}/claimhandling/caseForm/${claimSettlementTaskId}/0`,
+      {
+        method: 'GET',
+        headers,
+      },
+    );
+    const retrieveSettlementClaimData =
+      await retrieveSettlementClaimResponse.json();
+
+    if (retrieveSettlementClaimData.Status !== 'OK')
+      throw new Error('Retrieve Claim Settlement Task failed');
+
+    // 15-18: Load Claim Settlement, Get Payment Method, Get Settlement Partial/Final, Final Settlement Submit
+    const paymentMethodResponse = await fetch(
+      `${params.url}/public/codetable/data/list/75283381`,
+      {
+        method: 'GET',
+        headers,
+      },
+    );
+    const paymentMethodData = await paymentMethodResponse.json();
+
+    const finalSettlementBody = JSON.stringify({
+      SettlementEntity: {
+        '@type': 'ClaimSettlement-ClaimSettlement',
+        CaseId: caseId,
+        ClaimType: 'LOS',
+        SettlementPayee: [
+          {
+            '@type': 'ClaimSettlementPayee-ClaimSettlementPayee',
+            PayeeId: '1234', // Replace with actual value
+            PayMode: paymentMethodData[0].Code, // Example logic
+            SettlementItem: [
+              {
+                '@type': 'ClaimSettlementItem-ClaimSettlementItem',
+                SettleAmount: 100, // Example value, replace with actual
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const finalSettlementResponse = await fetch(
+      `${params.url}/public/settlement`,
+      {
+        method: 'POST',
+        headers,
+        body: finalSettlementBody,
+      },
+    );
+    const finalSettlementData = await finalSettlementResponse.json();
+
+    if (finalSettlementData.Status !== 'OK')
+      throw new Error('Final Settlement Submit failed');
+
+    return finalSettlementData;
+  } catch (error) {
+    console.error('Error during createPayment:', error);
     throw error;
   }
 }

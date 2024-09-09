@@ -1,7 +1,7 @@
 import { Response, Request } from 'express';
 import register from '../util/prom';
 import logger from '../util/logger';
-import { createFNOL } from './travelers-claim';
+import { createFNOL, createPayment } from './travelers-claim';
 
 /**
  * List of API examples.
@@ -30,7 +30,7 @@ export const getMetrics = async (
 
 /**
  * Travelers Claim FNOL
- * @route POST /travelers-claim/fnol
+ * @route POST /travelers/claim/fnol
  */
 export const postTravelersClaimFNOL = async (
   req: Request,
@@ -41,6 +41,22 @@ export const postTravelersClaimFNOL = async (
     res.status(200).json(fnol);
   } catch (error) {
     logger.error('Error during FNOL process:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+/**
+ * Travelers Claim Create Payment
+ * @route POST /travelers/claim/payment
+ */
+export const postTravelersClaimPayment = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const payment = await createPayment(req.body);
+    res.status(200).json(payment);
+  } catch (error) {
+    logger.error('Error during payment process:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
