@@ -6,6 +6,7 @@ import cors from 'cors';
 import path from 'path';
 import winston from 'winston';
 import expressWinston from 'express-winston';
+import { winstonCombinedFormat } from './util/logger';
 
 // Controllers (route handlers)
 import * as apiController from './controllers/api';
@@ -47,14 +48,12 @@ const router = express.Router();
  */
 router.get('/api', apiController.getApi);
 router.get('/metrics', apiController.getMetrics);
+router.post('/travelers-claim/fnol', apiController.postTravelersClaimFNOL);
 
 app.use(
   expressWinston.logger({
     transports: [new winston.transports.Console()],
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.json(),
-    ),
+    format: winstonCombinedFormat,
     meta: true, // optional: control whether you want to log the meta data about the request (default to true)
     msg: 'HTTP {{req.method}} {{req.url}}', // optional: customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}"
     expressFormat: true, // Use the default Express/morgan request formatting. Enabling this will override any msg if true. Will only output colors with colorize set to true
@@ -70,10 +69,7 @@ app.use(router);
 app.use(
   expressWinston.errorLogger({
     transports: [new winston.transports.Console()],
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.json(),
-    ),
+    format: winstonCombinedFormat,
   }),
 );
 

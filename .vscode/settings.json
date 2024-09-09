@@ -36,5 +36,8 @@
     "source.fixAll.eslint": "explicit"
   },
   "eslint.codeActionsOnSave.mode": "problems",
-  "npm.packageManager": "yarn"
+  "npm.packageManager": "yarn",
+  "cSpell.words": [
+    "FNOL"
+  ]
 }
