@@ -1,5 +1,7 @@
 import winston from 'winston';
 
+const isTTY = process.stdout.isTTY;
+
 const logger = winston.createLogger({
   transports: [
     new winston.transports.Console({
@@ -8,8 +10,12 @@ const logger = winston.createLogger({
     new winston.transports.File({ filename: 'debug.log', level: 'debug' }),
   ],
   format: winston.format.combine(
-    winston.format.colorize(),
-    winston.format.json(),
+    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    isTTY ? winston.format.colorize() : winston.format.uncolorize(),
+    winston.format.printf(
+      ({ level, message, timestamp, stack, ...meta }) =>
+        `${timestamp} ${level}: ${stack || message} ${Object.keys(meta).length ? JSON.stringify(meta) : ''}`,
+    ),
   ),
 });
 
