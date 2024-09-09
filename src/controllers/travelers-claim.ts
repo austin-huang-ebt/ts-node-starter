@@ -299,7 +299,7 @@ export async function createPayment(params: CreatePaymentParams) {
       logger.error(`Failed to query claim tasks: ${queryClaimTasksData}`);
       throw new Error('Query Claim Tasks failed');
     }
-    const taskId = queryClaimTasksData.Model.loadClaimTasks[1].id;
+    const taskId = queryClaimTasksData.Model.loadClaimTasks[0].id;
     logger.info(`Task ID: ${taskId}`);
 
     // 3. Retrieve Claim by Task Id
@@ -506,17 +506,12 @@ export async function createPayment(params: CreatePaymentParams) {
 
     // 10. Filter Selectable Coverage List (assumed logic as per the context)
     logger.info('Filtering Selectable Coverage List');
-    const filterCoverageListBody = JSON.stringify({
-      PRODUCT_LINE_CODE,
+    const insuredId = claimCase.ClaimEntity.PolicyEntity.InsuredList[0]['@pk'];
+    const coverageListUrl = `${SERVER_URL}/claimhandling/subclaim/coverageList/${subclaimType}/${claimCase.ClaimEntity.ProductCode}/${insuredId}`;
+    const filterCoverageListResponse = await fetch(coverageListUrl, {
+      method: 'GET',
+      headers,
     });
-    const filterCoverageListResponse = await fetch(
-      `${SERVER_URL}/public/coverage/filter`,
-      {
-        method: 'POST',
-        headers,
-        body: filterCoverageListBody,
-      },
-    );
     if (!filterCoverageListResponse.ok) {
       logger.error(
         `Failed to filter Selectable Coverage List: ${filterCoverageListResponse.status} ${filterCoverageListResponse.statusText}`,
@@ -604,7 +599,7 @@ export async function createPayment(params: CreatePaymentParams) {
     logger.info('Claim Case composed, calling API now');
 
     const claimRegistrationResponse = await fetch(
-      `${SERVER_URL}/claimhandling/submitClaimRegistration`,
+      `${SERVER_URL}/registration/submitClaim`,
       {
         method: 'POST',
         headers,
@@ -659,7 +654,7 @@ export async function createPayment(params: CreatePaymentParams) {
       queryClaimSettlementTasksData.Model.loadClaimTasks[0].id;
     logger.info(`Claim Settlement Task ID: ${claimSettlementTaskId}`);
 
-    // 13. and Work on Claim Settlement Task
+    // 13. Work on Claim Settlement Task
     logger.info('Working on claim settlement task');
     const workOnClaimTaskPayload = {
       TaskInstanceId: claimSettlementTaskId,
@@ -699,6 +694,7 @@ export async function createPayment(params: CreatePaymentParams) {
     claimCase = await retrieveSettlementClaimResponse.json();
 
     // 15. Load Claim Settlement
+    logger.info('Loading Claim Settlement');
     const loadClaimSettlementResponse = await fetch(
       `${SERVER_URL}/settlement/load/${claimSettlementTaskId}`,
       {
@@ -854,6 +850,10 @@ export async function createPayment(params: CreatePaymentParams) {
       throw new Error('Failed to submit final settlement');
     }
     const finalSettlementData = await finalSettlementResponse.json();
+    if (finalSettlementData.Status !== 'OK') {
+      logger.error(`Failed to submit Final Settlement: ${finalSettlementData}`);
+      throw new Error('Failed to submit final settlement');
+    }
 
     return finalSettlementData;
   } catch (error) {
