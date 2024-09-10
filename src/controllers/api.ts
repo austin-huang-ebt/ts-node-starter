@@ -30,7 +30,7 @@ export const getMetrics = async (
 
 /**
  * Travelers Claim FNOL
- * @route POST /travelers/claim/fnol
+ * @route POST /travelers/claim/api-orch/v1/fnol
  */
 export const postTravelersClaimFNOL = async (
   req: Request,
@@ -46,7 +46,7 @@ export const postTravelersClaimFNOL = async (
 };
 /**
  * Travelers Claim Create Payment
- * @route POST /travelers/claim/payment
+ * @route POST /travelers/claim/api-orch/v1/payment
  */
 export const postTravelersClaimPayment = async (
   req: Request,

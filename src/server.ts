@@ -87,7 +87,7 @@ const options = {
 
 createTerminus(server, options);
 
-export default server.listen(app.get('port'), () => {
+export default server.listen(app.get('port'), '0.0.0.0', () => {
   console.log(
     'App is running at http://localhost:%d in %s mode',
     app.get('port'),

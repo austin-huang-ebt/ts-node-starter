@@ -48,9 +48,12 @@ const router = express.Router();
  */
 router.get('/api', apiController.getApi);
 router.get('/metrics', apiController.getMetrics);
-router.post('/travelers/claim/fnol', apiController.postTravelersClaimFNOL);
 router.post(
-  '/travelers/claim/payment',
+  '/travelers/claim/api-orch/v1/fnol',
+  apiController.postTravelersClaimFNOL,
+);
+router.post(
+  '/travelers/claim/api-orch/v1/payment',
   apiController.postTravelersClaimPayment,
 );
 
