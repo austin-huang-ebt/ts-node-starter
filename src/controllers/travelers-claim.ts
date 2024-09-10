@@ -248,7 +248,11 @@ export async function createPayment(params: CreatePaymentParams) {
   const headers = getHeaders();
 
   // 1. Search Claim
-  const { caseId } = await queryByNewEcoId(params.newEcoFnolId, 1, headers);
+  const { CaseId: caseId, currHouseClaimId } = await queryByNewEcoId(
+    params.newEcoFnolId,
+    1,
+    headers,
+  );
 
   // 2. Query Claim Tasks by caseId
   logger.info('Querying claim tasks');
@@ -775,7 +779,7 @@ export async function createPayment(params: CreatePaymentParams) {
     OurShareAmount: 0,
     // convert partial / final description to code
     PayFinal: partialFinalOptions.find(
-      (pf) => pf.Description === params.partialFinalOption ?? 'Final',
+      (pf) => pf.Description === (params.partialFinalOption ?? 'Final'),
     )!.Code,
     PaymentType: paymentType,
   };
@@ -822,6 +826,9 @@ export async function createPayment(params: CreatePaymentParams) {
     logger.error(`Failed to submit Final Settlement: ${finalSettlementData}`);
     throw new Error('Failed to submit final settlement');
   }
+
+  // 19. Notify Payment Done
+  await notifyPaymentDone(caseId, params.newEcoFnolId, currHouseClaimId);
 
   return finalSettlementData;
 }
@@ -887,4 +894,97 @@ async function queryByNewEcoId(
   searchRslt.currHouseClaimId = currHouseClaimId;
   logger.info(`Case ID: ${searchRslt.CaseId}`);
   return searchRslt;
+}
+
+async function querySettlement(caseId: string) {
+  const headers = getHeaders();
+
+  // 1: Query settlement history
+  logger.info('Querying Claim Settlement History');
+  const queryClaimSettlementHistoryResponse = await fetch(
+    `${SERVER_URL}/settlement/history?caseId=${caseId}&taskCode=ClaimSettlementTask`,
+    {
+      method: 'GET',
+      headers,
+    },
+  );
+  if (!queryClaimSettlementHistoryResponse.ok) {
+    logger.error(
+      `Failed to query Claim Settlement History: ${queryClaimSettlementHistoryResponse.status} ${queryClaimSettlementHistoryResponse.statusText}`,
+    );
+    throw new Error('Query Claim Settlement History failed');
+  }
+  const queryClaimSettlementHistoryData =
+    await queryClaimSettlementHistoryResponse.json();
+
+  if (queryClaimSettlementHistoryData.Status !== 'OK') {
+    logger.error(
+      `Failed to query Claim Settlement History: ${queryClaimSettlementHistoryData}`,
+    );
+    throw new Error('Query Claim Settlement History failed');
+  }
+  const settleId = queryClaimSettlementHistoryData.Model[0].SettleId;
+  logger.info(`Claim Settlement ID: ${settleId}`);
+
+  // 2: Query settlement detail
+  logger.info('Querying Claim Settlement Detail');
+  const queryClaimSettlementDetailResponse = await fetch(
+    `${SERVER_URL}/settlement/load/bySettlementId/${settleId}`,
+    {
+      method: 'GET',
+      headers,
+    },
+  );
+  if (!queryClaimSettlementDetailResponse.ok) {
+    logger.error(
+      `Failed to query Claim Settlement Detail: ${queryClaimSettlementDetailResponse.status} ${queryClaimSettlementDetailResponse.statusText}`,
+    );
+    throw new Error('Query Claim Settlement Detail failed');
+  }
+  const queryClaimSettlementDetailData =
+    await queryClaimSettlementDetailResponse.json();
+
+  if (queryClaimSettlementDetailData.Status !== 'OK') {
+    logger.error(
+      `Failed to query Claim Settlement Detail: ${queryClaimSettlementDetailData}`,
+    );
+    throw new Error('Query Claim Settlement Detail failed');
+  }
+  const settleInfo = queryClaimSettlementDetailData.Model.SettlementInfo;
+  logger.info(`Claim Settlement ID in settlement info: ${settleInfo.SettleId}`);
+
+  return settleInfo;
+}
+
+async function notifyPaymentDone(
+  caseId: string,
+  newEcoFnolId: string,
+  currHouseClaimId: string,
+) {
+  logger.info('Notifying payment done');
+
+  const settleInfo = await querySettlement(caseId);
+  settleInfo.newEcoFnolId = newEcoFnolId;
+  settleInfo.currHouseClaimId = currHouseClaimId;
+
+  logger.info(`Settlement Info: ${JSON.stringify(settleInfo)}`);
+
+  // call iHub to notify payment done
+  const TRAVELERS_iHub_TOKEN = process.env.TRAVELERS_iHub_TOKEN;
+  logger.debug(`Travelers Claim Server Token: ${TRAVELERS_iHub_TOKEN}`);
+  const headers = {
+    Authorization: `Bearer ${TRAVELERS_iHub_TOKEN}`,
+    'Content-Type': 'application/json',
+  };
+
+  logger.info('Calling iHub to notify payment done');
+  await fetch(
+    'https://portal-gw.insuremo.com/ebaoeco/1.0/us/sales/travelers/v1/claim/payment/notification',
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(settleInfo),
+    },
+  );
+  logger.info('Payment done notification sent successfully');
 }
