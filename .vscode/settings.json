@@ -38,6 +38,7 @@
   "eslint.codeActionsOnSave.mode": "problems",
   "npm.packageManager": "yarn",
   "cSpell.words": [
-    "FNOL"
+    "FNOL",
+    "Rslt"
   ]
 }
