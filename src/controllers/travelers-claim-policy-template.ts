@@ -685,7 +685,6 @@ const TRAVELERS_CLAIM_POLICY_TEMPLATE = {
           RiskCateId: 5,
         },
       ],
-
       InsuredCategory: 3,
       InsuredName: '2406 Blue Bonnet Boulevard  Houston, TX 77030',
     },

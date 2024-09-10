@@ -24,22 +24,22 @@ type FNOLParams = {
 
 interface CreatePaymentParams {
   newEcoFnolId: string;
-  causeOfLossDesc: string;
-  damageTypeDesc: string;
-  subclaimTypeDesc: string;
+  causeOfLoss: string;
+  damageType: string;
+  subclaimType: string;
   estimatedLoss: number;
-  litigationFlag: string;
-  totalLossFlag: string;
-  isSubrogation: string;
-  isSalvage: string;
+  litigation?: string;
+  totalLoss?: string;
+  hasSubrogation?: string;
+  hasSalvage?: string;
   damageParty: string;
-  riskName: string;
+  damageObject: string;
   claimOwner: string;
   coverageName: string;
   initLossIndemnity: number;
-  paymentMethodDesc: string;
+  paymentMethod: string;
   paymentType: string;
-  partialFinalOption: string;
+  partialFinalOption?: string;
   settleAmount: number;
 }
 
@@ -372,7 +372,7 @@ export async function createPayment(params: CreatePaymentParams) {
       unknown
     >[];
     const causeOfLoss = getCauseOfLossData.find(
-      (d) => d.Description === params.causeOfLossDesc,
+      (d) => d.Description === params.causeOfLoss,
     )!.Code;
     logger.info(`Cause of Loss: ${causeOfLoss}`);
 
@@ -398,7 +398,7 @@ export async function createPayment(params: CreatePaymentParams) {
     const getSubclaimTypeData =
       (await getSubclaimTypeResponse.json()) as Record<string, unknown>[];
     const subclaimType = getSubclaimTypeData.find(
-      (d) => d.Description === params.subclaimTypeDesc,
+      (d) => d.Description === params.subclaimType,
     )!.Code;
     logger.info(`Subclaim Type: ${subclaimType}`);
 
@@ -426,7 +426,7 @@ export async function createPayment(params: CreatePaymentParams) {
       unknown
     >[];
     const damageType = getDamageTypeData.find(
-      (d) => d.Description === params.damageTypeDesc,
+      (d) => d.Description === params.damageType,
     )!.Code;
     logger.info(`Damage Type: ${damageType}`);
 
@@ -553,15 +553,15 @@ export async function createPayment(params: CreatePaymentParams) {
     const subclaim: Record<string, unknown> = {
       '@type': 'ClaimObject-ClaimObject',
       SeqNo: '001',
-      LitigationFlag: params.litigationFlag,
-      TotalLossFlag: params.totalLossFlag,
-      IsSubrogation: params.isSubrogation,
-      IsSalvage: params.isSalvage,
+      LitigationFlag: params.litigation ?? 'N',
+      TotalLossFlag: params.totalLoss ?? 'N',
+      IsSubrogation: params.hasSubrogation ?? 'N',
+      IsSalvage: params.hasSalvage ?? 'N',
       EstimatedLossCurrency: 'USD',
       SubclaimType: subclaimType,
       DamageType: damageType,
       damageParty: params.damageParty,
-      RiskName: params.riskName,
+      RiskName: params.damageObject,
       EstimatedLossAmount: params.estimatedLoss,
       DamageSeverity: damageSeverity,
     };
@@ -772,7 +772,7 @@ export async function createPayment(params: CreatePaymentParams) {
 
     // convert payment method description to code
     const selectedPaymentMethod = paymentMethods.find(
-      (p) => p.Description === params.paymentMethodDesc,
+      (p) => p.Description === params.paymentMethod,
     )!.Code;
 
     // selectively copy the same propreties from reserve structure to settlement
@@ -807,7 +807,7 @@ export async function createPayment(params: CreatePaymentParams) {
       OurShareAmount: 0,
       // convert partial / final description to code
       PayFinal: partialFinalOptions.find(
-        (pf) => pf.Description === params.partialFinalOption,
+        (pf) => pf.Description === params.partialFinalOption ?? 'Final',
       )!.Code,
       PaymentType: paymentType,
     };
