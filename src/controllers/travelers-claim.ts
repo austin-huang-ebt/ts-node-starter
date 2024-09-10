@@ -828,9 +828,14 @@ export async function createPayment(params: CreatePaymentParams) {
   }
 
   // 19. Notify Payment Done
-  await notifyPaymentDone(caseId, params.newEcoFnolId, currHouseClaimId);
+  const fullClaim = await notifyPaymentDone(
+    caseId,
+    params.newEcoFnolId,
+    currHouseClaimId,
+    claimCase.ClaimEntity,
+  );
 
-  return finalSettlementData;
+  return fullClaim;
 }
 
 async function queryByNewEcoId(
@@ -960,6 +965,7 @@ async function notifyPaymentDone(
   caseId: string,
   newEcoFnolId: string,
   currHouseClaimId: string,
+  claimEntity: Record<string, unknown>,
 ) {
   logger.info('Notifying payment done');
 
@@ -977,14 +983,21 @@ async function notifyPaymentDone(
     'Content-Type': 'application/json',
   };
 
+  const fullClaim = {
+    claimCase: claimEntity,
+    settlementInfo: settleInfo,
+  };
+
   logger.info('Calling iHub to notify payment done');
   await fetch(
     'https://portal-gw.insuremo.com/ebaoeco/1.0/us/sales/travelers/v1/claim/payment/notification',
     {
       method: 'POST',
       headers,
-      body: JSON.stringify(settleInfo),
+      body: JSON.stringify(fullClaim),
     },
   );
   logger.info('Payment done notification sent successfully');
+
+  return fullClaim;
 }
