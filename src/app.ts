@@ -56,6 +56,10 @@ router.post(
   '/travelers/claim/api-orch/v1/payment',
   apiController.postTravelersClaimPayment,
 );
+router.post(
+  '/travelers/claim/api-orch/v1/current-house-id',
+  apiController.postQueryCurrentHouseId,
+);
 
 app.use(
   expressWinston.logger({

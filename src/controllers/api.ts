@@ -1,6 +1,10 @@
 import { Response, Request } from 'express';
 import register from '../util/prom';
-import { createFNOL, createPayment } from './travelers-claim';
+import {
+  createFNOL,
+  createPayment,
+  queryCurrentHouseId,
+} from './travelers-claim';
 
 /**
  * List of API examples.
@@ -57,6 +61,23 @@ export const postTravelersClaimPayment = async (
     res.status(200).json(payment);
   } catch (error) {
     console.error('Error during payment process:', error);
+    res.status(500).send((error as Error).message);
+  }
+};
+
+/**
+ * Travelers Claim query ID of the current house
+ * @route POST /travelers/claim/api-orch/v1/current-house-id
+ */
+export const postQueryCurrentHouseId = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const searchRslt = await queryCurrentHouseId(req.body);
+    res.status(200).json(searchRslt);
+  } catch (error) {
+    console.error('Error during query current house ID process:', error);
     res.status(500).send((error as Error).message);
   }
 };

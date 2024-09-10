@@ -49,13 +49,22 @@ const SERVER_URL =
 const ORGAN_ID = 1000000000002;
 const PRODUCT_LINE_CODE = '1';
 
-export async function createFNOL(params: FNOLParams) {
+function getHeaders() {
   const TRAVELERS_CLAIM_SERVER_TOKEN = process.env.TRAVELERS_CLAIM_SERVER_TOKEN;
   logger.debug(`Travelers Claim Server Token: ${TRAVELERS_CLAIM_SERVER_TOKEN}`);
   const headers = {
     Authorization: `Bearer ${TRAVELERS_CLAIM_SERVER_TOKEN}`,
     'Content-Type': 'application/json',
   };
+  return headers;
+}
+
+export async function queryCurrentHouseId(params: FNOLParams) {
+  return await queryByNewEcoId(params.newEcoFnolId, 1, getHeaders());
+}
+
+export async function createFNOL(params: FNOLParams) {
+  const headers = getHeaders();
 
   // check if the newEcoFnolId exists in the system
   await queryByNewEcoId(params.newEcoFnolId, 0, headers);
@@ -236,12 +245,7 @@ export async function createFNOL(params: FNOLParams) {
 }
 
 export async function createPayment(params: CreatePaymentParams) {
-  const TRAVELERS_CLAIM_SERVER_TOKEN = process.env.TRAVELERS_CLAIM_SERVER_TOKEN;
-  logger.debug(`Travelers Claim Server Token: ${TRAVELERS_CLAIM_SERVER_TOKEN}`);
-  const headers = {
-    Authorization: `Bearer ${TRAVELERS_CLAIM_SERVER_TOKEN}`,
-    'Content-Type': 'application/json',
-  };
+  const headers = getHeaders();
 
   // 1. Search Claim
   const { caseId } = await queryByNewEcoId(params.newEcoFnolId, 1, headers);
@@ -856,7 +860,7 @@ async function queryByNewEcoId(
     );
   }
   const searchClaimData = await searchClaimResponse.json();
-  const count = searchClaimData.Results[0]?.SolrDocs.length ?? 0;
+  const count = searchClaimData.Results?.[0].SolrDocs?.length ?? 0;
   logger.info(`Found ${count} claim(s) for ${newEcoFnolId}`);
   if (count != expectedCount) {
     logger.error(
@@ -865,6 +869,9 @@ async function queryByNewEcoId(
     throw new Error(
       `Expected ${expectedCount} claim(s) but found ${count} claim(s) for ${newEcoFnolId}`,
     );
+  }
+  if (!count) {
+    return undefined;
   }
 
   const searchRslt = searchClaimData.Results[0].SolrDocs[0];
@@ -878,6 +885,6 @@ async function queryByNewEcoId(
   );
   searchRslt.newEcoFnolId = newEcoId;
   searchRslt.currHouseClaimId = currHouseClaimId;
-  logger.info(`Case ID: ${searchRslt.caseId}`);
+  logger.info(`Case ID: ${searchRslt.CaseId}`);
   return searchRslt;
 }
