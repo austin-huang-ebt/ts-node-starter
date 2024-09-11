@@ -6,6 +6,7 @@ type FNOLParams = {
   newEcoFnolId: string;
   currHouseClaimId: string;
   policyNo: string;
+  productCode: string;
   dateOfLoss: string;
   dateOfNotification: string;
   policyholderName: string;
@@ -70,20 +71,12 @@ export async function createFNOL(params: FNOLParams) {
   await queryByNewEcoId(params.newEcoFnolId, 0, headers);
 
   // Step 1: Get Product Tree
-  logger.info('Fetching product tree');
-  const productTreeResponse = await fetch(
-    `${SERVER_URL}/productTree/productLineTree`,
-    { headers },
-  );
-  if (!productTreeResponse.ok) {
-    logger.error(
-      `Failed to fetch product tree: ${productTreeResponse.status} ${productTreeResponse.statusText}`,
-    );
-    throw new Error('Failed to fetch product tree');
-  }
-  const productTreeData = await productTreeResponse.json();
-  const productCode = productTreeData.Model[2].id;
+  const productCode = params.productCode;
   logger.info(`Product code: ${productCode}`);
+  if (!productCode) {
+    logger.error('Product code is required');
+    throw new Error('Product code is required');
+  }
 
   // Step 2: Get Product Detail
   logger.info('Fetching product detail');
@@ -98,7 +91,11 @@ export async function createFNOL(params: FNOLParams) {
     throw new Error('Failed to fetch product detail');
   }
   const productDetailData = await productDetailResponse.json();
-  const productTypeCode = productDetailData.Model.ProductTypeCode;
+  const productTypeCode = productDetailData.Model?.ProductTypeCode;
+  if (!productTypeCode) {
+    logger.error(`Product code ${productCode} does not exist`);
+    throw new Error(`Product code ${productCode} does not exist`);
+  }
   const productDescription = productDetailData.Model.ProductDescription;
   logger.info(
     `Product type code: ${productTypeCode}, Product description: ${productDescription}`,
