@@ -275,7 +275,12 @@ export async function createPayment(params: CreatePaymentParams) {
     logger.error(`Failed to query claim tasks: ${queryClaimTasksData}`);
     throw new Error('Query Claim Tasks failed');
   }
-  const taskId = queryClaimTasksData.Model.loadClaimTasks[0].id;
+  const { id: taskId, TaskDefinitionKey } =
+    queryClaimTasksData.Model.loadClaimTasks[0] ?? {};
+  if (!taskId || TaskDefinitionKey !== 'ClaimRegistrationTask') {
+    logger.error(`Claim ${params.newEcoFnolId} already processed`);
+    throw new Error(`Claim ${params.newEcoFnolId} already processed`);
+  }
   logger.info(`Task ID: ${taskId}`);
 
   // 3. Retrieve Claim by Task Id
@@ -1000,6 +1005,8 @@ async function notifyPaymentDone(
   logger.info(`Settlement Info: ${JSON.stringify(settleInfo)}`);
 
   const claimEntity = await queryClaimByID(caseId);
+  delete claimEntity.OwnerList;
+  delete claimEntity.PolicyEntity.InsuredList[0].CoverageList;
 
   // call iHub to notify payment done
   const TRAVELERS_iHub_TOKEN = process.env.TRAVELERS_iHub_TOKEN;
