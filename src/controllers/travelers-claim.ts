@@ -832,7 +832,6 @@ export async function createPayment(params: CreatePaymentParams) {
     caseId,
     params.newEcoFnolId,
     currHouseClaimId,
-    claimCase.ClaimEntity,
   );
 
   return fullClaim;
@@ -961,11 +960,36 @@ async function querySettlement(caseId: string) {
   return settleInfo;
 }
 
+async function queryClaimByID(caseId: string) {
+  const headers = getHeaders();
+
+  logger.info(`Querying Claim by ID ${caseId}`);
+  const queryClaimResponse = await fetch(
+    `${SERVER_URL}/claimhandling/caseForm/0/${caseId}`,
+    {
+      method: 'GET',
+      headers,
+    },
+  );
+  if (!queryClaimResponse.ok) {
+    logger.error(
+      `Failed to query Claim: ${queryClaimResponse.status} ${queryClaimResponse.statusText}`,
+    );
+    throw new Error('Query Claim failed');
+  }
+  const queryClaimData = await queryClaimResponse.json();
+  if (!_.has(queryClaimData, 'ClaimEntity')) {
+    logger.error(`Failed to query Claim: ${queryClaimData}`);
+    throw new Error("Query Claim failed: Can't find ClaimEntity");
+  }
+
+  return queryClaimData.ClaimEntity;
+}
+
 async function notifyPaymentDone(
   caseId: string,
   newEcoFnolId: string,
   currHouseClaimId: string,
-  claimEntity: Record<string, unknown>,
 ) {
   logger.info('Notifying payment done');
 
@@ -974,6 +998,8 @@ async function notifyPaymentDone(
   settleInfo.currHouseClaimId = currHouseClaimId;
 
   logger.info(`Settlement Info: ${JSON.stringify(settleInfo)}`);
+
+  const claimEntity = await queryClaimByID(caseId);
 
   // call iHub to notify payment done
   const TRAVELERS_iHub_TOKEN = process.env.TRAVELERS_iHub_TOKEN;
