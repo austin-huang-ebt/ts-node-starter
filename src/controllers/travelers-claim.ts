@@ -44,8 +44,7 @@ interface CreatePaymentParams {
   settleAmount: number;
 }
 
-const SERVER_URL =
-  'https://us-vault-punetst-gw.insuremo.com/aw/1.0/general-claim';
+const SERVER_URL = 'https://aw-gi-punetst.insuremo.com/general-claim';
 
 const ORGAN_ID = 1000000000002;
 const PRODUCT_LINE_CODE = '1';
